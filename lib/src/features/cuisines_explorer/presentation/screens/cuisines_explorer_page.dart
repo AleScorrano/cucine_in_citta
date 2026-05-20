@@ -30,6 +30,7 @@ class CuisineExplorerPage extends StatelessWidget {
                 SearchCuisinesError(:final message) => AppErrorWidget(
                   message: message,
                   onRetry: () => cubit.retryCuisineSearch(),
+                  onBack: () => cubit.resetState(),
                 ),
 
                 _ => CitySearchView(state: state),
