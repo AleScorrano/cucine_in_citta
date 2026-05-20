@@ -2,10 +2,9 @@ import 'package:cucine_in_citta/src/core/di/injection.dart';
 import 'package:cucine_in_citta/src/core/theme/app_theme.dart';
 import 'package:cucine_in_citta/src/features/cuisines_explorer/presentation/cubit/cuisines_explorer_cubit.dart';
 import 'package:cucine_in_citta/src/features/cuisines_explorer/presentation/screens/cuisines_explorer_page.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,6 +17,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final home = BlocProvider(
+      create: (_) => getIt<CuisineExplorerCubit>(),
+      child: CuisineExplorerPage(),
+    );
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
 
@@ -25,10 +29,14 @@ class MyApp extends StatelessWidget {
 
       theme: AppTheme.dark,
 
-      home: BlocProvider(
-        create: (_) => getIt<CuisineExplorerCubit>(),
-        child: CuisineExplorerPage(),
-      ),
+      home: kIsWeb
+          ? Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 430),
+                child: home,
+              ),
+            )
+          : home,
     );
   }
 }

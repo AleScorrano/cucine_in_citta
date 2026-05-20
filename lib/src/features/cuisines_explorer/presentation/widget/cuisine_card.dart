@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cucine_in_citta/src/core/theme/app_colors.dart';
 import 'package:cucine_in_citta/src/core/theme/app_dimensions.dart';
 import 'package:cucine_in_citta/src/features/cuisines_explorer/data/models/cuisine_model.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class CuisineCard extends StatelessWidget {
@@ -22,7 +23,11 @@ class CuisineCard extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Expanded(child: CachedNetworkImage(imageUrl: cuisine.emoji)),
+          Expanded(
+            child: !kIsWeb
+                ? CachedNetworkImage(imageUrl: cuisine.emoji)
+                : Image.network(cuisine.emoji),
+          ),
           Text(
             cuisine.nameIt,
             textAlign: TextAlign.center,
