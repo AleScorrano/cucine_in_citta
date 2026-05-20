@@ -9,8 +9,6 @@ class IdleWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // 28% dell’altezza disponibile
-        // con limiti min/max
         final imageSize = (constraints.maxHeight * 0.50).clamp(140.0, 260.0);
 
         return SingleChildScrollView(
