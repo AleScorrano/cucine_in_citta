@@ -1,0 +1,8 @@
+{
+  "dart.flutterSdkPath": "/Users/alessandroscorrano/flutter",
+  "[dart]": {
+    "editor.formatOnSave": true,
+    "editor.formatOnType": true
+  },
+  "editor.formatOnPaste": true
+}
