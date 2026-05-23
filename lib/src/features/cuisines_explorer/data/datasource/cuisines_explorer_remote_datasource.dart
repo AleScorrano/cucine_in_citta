@@ -1,10 +1,8 @@
 import 'package:cucine_in_citta/src/features/cuisines_explorer/data/models/cuisine_response_model.dart';
 import 'package:dio/dio.dart';
-
+import 'package:fpdart/fpdart.dart';
 import '../../../../core/errors/api_exception.dart';
 import '../../../../core/network/api_client.dart';
-import '../../../../shared/result.dart';
-
 import '../models/city_model.dart';
 
 class CuisineExplorerRemoteDatasource {
@@ -12,29 +10,29 @@ class CuisineExplorerRemoteDatasource {
 
   CuisineExplorerRemoteDatasource(this.api);
 
-  Future<Result<List<CityModel>, ApiException>> searchCities(
+  Future<Either<ApiException, List<CityModel>>> searchCities(
     String term,
     String language,
-    int limit
+    int limit,
   ) async {
     try {
-      final res = await api.searchCities(term, language, limit);
-      return Success(res);
+      final response = await api.searchCities(term, language, limit);
+      return right(response);
     } on DioException catch (e) {
-      return Failure(null, ApiException(e.message ?? 'error'));
+      return left(ApiException(e.message ?? "Error"));
     }
   }
 
-  Future<Result<CuisineResponseModel, ApiException>> getCuisines(
+  Future<Either<ApiException, CuisineResponseModel>> getCuisines(
     double lat,
     double lng,
     String type,
   ) async {
     try {
-      final res = await api.getCuisines(lat, lng, type);
-      return Success(res);
+      final response = await api.getCuisines(lat, lng, type);
+      return right(response);
     } on DioException catch (e) {
-      return Failure(null, ApiException(e.message ?? 'error'));
+      return left(ApiException(e.message ?? 'error'));
     }
   }
 }

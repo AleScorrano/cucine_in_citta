@@ -1,15 +1,13 @@
-import 'package:cucine_in_citta/src/core/di/injection.dart';
 import 'package:cucine_in_citta/src/core/theme/app_theme.dart';
-import 'package:cucine_in_citta/src/features/cuisines_explorer/presentation/cubit/cuisines_explorer_cubit.dart';
 import 'package:cucine_in_citta/src/features/cuisines_explorer/presentation/screens/cuisines_explorer_page.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await setupDependencies();
-  runApp(const MyApp());
+  //await setupDependencies();
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
@@ -17,10 +15,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final home = BlocProvider(
-      create: (_) => getIt<CuisineExplorerCubit>(),
-      child: CuisineExplorerPage(),
-    );
+    final home = CuisineExplorerPage();
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,

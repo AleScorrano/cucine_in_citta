@@ -1,22 +1,20 @@
 import 'package:cucine_in_citta/src/core/theme/app_dimensions.dart';
-import 'package:cucine_in_citta/src/features/cuisines_explorer/presentation/cubit/cuisines_explorer_cubit.dart';
-import 'package:cucine_in_citta/src/features/cuisines_explorer/presentation/cubit/cuisines_explorer_state.dart';
+import 'package:cucine_in_citta/src/features/cuisines_explorer/di/cuisine_explorer_providers.dart';
+import 'package:cucine_in_citta/src/features/cuisines_explorer/presentation/viewModels/cuisine_explorer_state.dart';
 import 'package:cucine_in_citta/src/features/cuisines_explorer/presentation/widget/city_list_skeleton.dart';
 import 'package:cucine_in_citta/src/features/cuisines_explorer/presentation/widget/city_suggestion_list.dart';
 import 'package:cucine_in_citta/src/features/cuisines_explorer/presentation/widget/idle_widget.dart';
 import 'package:cucine_in_citta/src/features/cuisines_explorer/presentation/widget/search_bar.dart';
 import 'package:cucine_in_citta/src/features/cuisines_explorer/presentation/widget/app_error_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class CitySearchView extends StatelessWidget {
-  const CitySearchView({super.key, required this.state});
-
-  final CuisineExplorerState state;
+class CitySearchView extends ConsumerWidget {
+  const CitySearchView({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final cubit = context.read<CuisineExplorerCubit>();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final viewModel = ref.read(cuisineExplorerViewModelProvider.notifier);
 
     return Padding(
       padding: const EdgeInsets.all(AppPadding.xl),
@@ -37,31 +35,34 @@ class CitySearchView extends StatelessWidget {
 
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppPadding.md),
-            child: CitySearchBar(onChanged: cubit.onSearchChanged),
+            child: CitySearchBar(onChanged: viewModel.onSearchChanged),
           ),
 
           const SizedBox(height: AppPadding.lg),
 
-          Expanded(child: _buildBody(context)),
+          Expanded(child: _buildBody(context, ref)),
         ],
       ),
     );
   }
 
-  Widget _buildBody(BuildContext context) {
-    final cubit = context.read<CuisineExplorerCubit>();
+  Widget _buildBody(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(cuisineExplorerViewModelProvider);
+    final viewModel = ref.read(cuisineExplorerViewModelProvider.notifier);
 
     return switch (state) {
-      ExplorerIdle() => IdleWidget(),
+      ExplorerIdle() => const IdleWidget(),
       ExplorerSearching() => const CityListSkeleton(),
       ExplorerNoResults() => _noResultsWidget(context),
       SearchCitiesError(:final message) => AppErrorWidget(
         message: message,
-        onRetry: () => cubit.retryLastSearch(),
+        onRetry: viewModel.retryLastSearch,
       ),
+
       ExplorerSuggestionsLoaded(:final cities) => CitySuggestionList(
         cities: cities,
       ),
+
       _ => const SizedBox.shrink(),
     };
   }

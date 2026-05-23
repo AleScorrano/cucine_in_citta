@@ -1,18 +1,18 @@
 import 'package:cucine_in_citta/src/core/theme/app_colors.dart';
 import 'package:cucine_in_citta/src/core/theme/app_dimensions.dart';
 import 'package:cucine_in_citta/src/features/cuisines_explorer/data/models/city_model.dart';
-import 'package:cucine_in_citta/src/features/cuisines_explorer/presentation/cubit/cuisines_explorer_cubit.dart';
+import 'package:cucine_in_citta/src/features/cuisines_explorer/di/cuisine_explorer_providers.dart';
 import 'package:cucine_in_citta/src/features/cuisines_explorer/presentation/widget/city_tile.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class CitySuggestionList extends StatelessWidget {
+class CitySuggestionList extends ConsumerWidget {
   final List<CityModel> cities;
   const CitySuggestionList({super.key, required this.cities});
 
   @override
-  Widget build(BuildContext context) {
-    final cubit = context.read<CuisineExplorerCubit>();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final viewModel = ref.read(cuisineExplorerViewModelProvider.notifier);
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
@@ -27,7 +27,7 @@ class CitySuggestionList extends StatelessWidget {
           return CityTile(
             city: city,
             onTap: () {
-              cubit.selectCity(city);
+              viewModel.selectCity(city);
             },
           );
         },
