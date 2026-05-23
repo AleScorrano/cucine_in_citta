@@ -1,5 +1,6 @@
 import 'package:cucine_in_citta/src/features/cuisines_explorer/data/datasource/cuisines_explorer_remote_datasource.dart';
 import 'package:cucine_in_citta/src/features/cuisines_explorer/presentation/cubit/cuisines_explorer_state.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/utils/debounce.dart';
 import '../../../../shared/result.dart';
@@ -19,9 +20,7 @@ class CuisineExplorerCubit extends Cubit<CuisineExplorerState> {
   String? _lastQuery;
   CityModel? _lastCitySelected;
 
-  /// Identifica l’ultima request valida
-  /// per evitare race conditions.
-  int _activeRequestId = 0;
+  CancelToken? _searchCancelToken;
 
   void resetState() {
     emit(const ExplorerIdle());
@@ -41,7 +40,7 @@ class CuisineExplorerCubit extends Cubit<CuisineExplorerState> {
     final query = text.trim();
 
     // Invalida tutte le request precedenti.
-    final requestId = ++_activeRequestId;
+    _searchCancelToken?.cancel();
 
     if (query.length < 2) {
       emit(const ExplorerIdle());
@@ -51,19 +50,17 @@ class CuisineExplorerCubit extends Cubit<CuisineExplorerState> {
     _lastQuery = query;
 
     _debouncer(() async {
-      // Ignora debounce non più validi.
-      if (requestId != _activeRequestId) {
-        return;
-      }
-
       emit(const ExplorerSearching());
 
-      final result = await _dataSource.searchCities(query, "it", 8);
+      final cancelToken = CancelToken();
+      _searchCancelToken = cancelToken;
 
-      // Ignora response obsolete.
-      if (requestId != _activeRequestId) {
-        return;
-      }
+      final result = await _dataSource.searchCities(
+        query,
+        "it",
+        8,
+        cancelToken: cancelToken,
+      );
 
       switch (result) {
         case Success(:final value):
@@ -80,11 +77,9 @@ class CuisineExplorerCubit extends Cubit<CuisineExplorerState> {
   }
 
   Future<void> selectCity(CityModel city) async {
-    // Invalida tutte le search pendenti.
-    _activeRequestId++;
-
     // Cancella eventuali debounce in coda.
     _debouncer.cancel();
+    _searchCancelToken?.cancel();
 
     emit(const ExplorerLoadingCuisines());
 

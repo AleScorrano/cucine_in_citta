@@ -15,10 +15,11 @@ class CuisineExplorerRemoteDatasource {
   Future<Result<List<CityModel>, ApiException>> searchCities(
     String term,
     String language,
-    int limit
-  ) async {
+    int limit, {
+    CancelToken? cancelToken,
+  }) async {
     try {
-      final res = await api.searchCities(term, language, limit);
+      final res = await api.searchCities(term, language, limit, cancelToken);
       return Success(res);
     } on DioException catch (e) {
       return Failure(null, ApiException(e.message ?? 'error'));
