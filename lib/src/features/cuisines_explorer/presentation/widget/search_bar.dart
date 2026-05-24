@@ -9,6 +9,7 @@ class CitySearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final double borderRadius = 24;
     return TextField(
       onChanged: onChanged,
       style: Theme.of(
@@ -26,8 +27,22 @@ class CitySearchBar extends StatelessWidget {
         ),
         filled: true,
         fillColor: AppColors.surface,
-        contentPadding: EdgeInsets.symmetric(vertical: AppPadding.xl),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(100)),
+        contentPadding: EdgeInsets.symmetric(
+          vertical: AppPadding.lg + AppPadding.xs,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(borderRadius),
+          borderSide: BorderSide.none,
+        ),
+
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(borderRadius),
+          borderSide: BorderSide(color: AppColors.primary),
+        ),
+
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(borderRadius),
+        ),
       ),
     );
   }

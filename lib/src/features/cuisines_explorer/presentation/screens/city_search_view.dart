@@ -1,9 +1,11 @@
 import 'package:cucine_in_citta/src/core/theme/app_dimensions.dart';
+import 'package:cucine_in_citta/src/features/cuisines_explorer/data/models/city_model.dart';
 import 'package:cucine_in_citta/src/features/cuisines_explorer/presentation/cubit/cuisines_explorer_cubit.dart';
 import 'package:cucine_in_citta/src/features/cuisines_explorer/presentation/cubit/cuisines_explorer_state.dart';
 import 'package:cucine_in_citta/src/features/cuisines_explorer/presentation/widget/city_list_skeleton.dart';
 import 'package:cucine_in_citta/src/features/cuisines_explorer/presentation/widget/city_suggestion_list.dart';
 import 'package:cucine_in_citta/src/features/cuisines_explorer/presentation/widget/idle_widget.dart';
+import 'package:cucine_in_citta/src/features/cuisines_explorer/presentation/widget/recent_search_widget.dart';
 import 'package:cucine_in_citta/src/features/cuisines_explorer/presentation/widget/search_bar.dart';
 import 'package:cucine_in_citta/src/features/cuisines_explorer/presentation/widget/app_error_widget.dart';
 import 'package:flutter/material.dart';
@@ -36,13 +38,13 @@ class CitySearchView extends StatelessWidget {
           const SizedBox(height: AppPadding.xl + AppPadding.lg),
 
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppPadding.md),
+            padding: const EdgeInsets.symmetric(horizontal: AppPadding.xs),
             child: CitySearchBar(onChanged: cubit.onSearchChanged),
           ),
 
           const SizedBox(height: AppPadding.lg),
 
-          Expanded(child: _buildBody(context)),
+          _buildBody(context),
         ],
       ),
     );
@@ -51,16 +53,24 @@ class CitySearchView extends StatelessWidget {
   Widget _buildBody(BuildContext context) {
     final cubit = context.read<CuisineExplorerCubit>();
 
+    final List<CityModel> recentSearch = cubit.getRecentCities();
+
     return switch (state) {
-      ExplorerIdle() => IdleWidget(),
+      ExplorerIdle() =>
+        recentSearch.isEmpty
+            ? IdleWidget()
+            : RecentSearchWidget(cities: recentSearch),
       ExplorerSearching() => const CityListSkeleton(),
       ExplorerNoResults() => _noResultsWidget(context),
       SearchCitiesError(:final message) => AppErrorWidget(
         message: message,
         onRetry: () => cubit.retryLastSearch(),
       ),
-      ExplorerSuggestionsLoaded(:final cities) => CitySuggestionList(
-        cities: cities,
+      ExplorerSuggestionsLoaded(:final cities) => Flexible(
+        child: CitySuggestionList(
+          useCase: CitySuggestionListUseCase.showSuggestion,
+          cities: cities,
+        ),
       ),
       _ => const SizedBox.shrink(),
     };

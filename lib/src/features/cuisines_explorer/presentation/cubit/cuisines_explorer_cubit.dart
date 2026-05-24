@@ -1,4 +1,4 @@
-import 'package:cucine_in_citta/src/features/cuisines_explorer/data/datasource/cuisines_explorer_remote_datasource.dart';
+import 'package:cucine_in_citta/src/features/cuisines_explorer/data/repository/cuisine_explorer_repository.dart';
 import 'package:cucine_in_citta/src/features/cuisines_explorer/presentation/cubit/cuisines_explorer_state.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -7,9 +7,9 @@ import '../../../../shared/result.dart';
 import '../../data/models/city_model.dart';
 
 class CuisineExplorerCubit extends Cubit<CuisineExplorerState> {
-  CuisineExplorerCubit(this._dataSource) : super(const ExplorerIdle());
+  CuisineExplorerCubit(this._repository) : super(const ExplorerIdle());
 
-  final CuisineExplorerRemoteDatasource _dataSource;
+  final CuisineExplorerRepository _repository;
 
   /// Debounce per evitare chiamate API
   /// ad ogni keystroke.
@@ -24,6 +24,18 @@ class CuisineExplorerCubit extends Cubit<CuisineExplorerState> {
 
   void resetState() {
     emit(const ExplorerIdle());
+  }
+
+  List<CityModel> getRecentCities() => _repository.getRecentCities();
+
+  Future<void> deleteRecentCity(CityModel city) async {
+    await _repository.deleteRecentCity(city);
+    emit(ExplorerIdle());
+  }
+
+  Future<void> deleteAllRecentCities() async {
+    await _repository.deleteAllRecentCityes();
+    emit(ExplorerIdle());
   }
 
   void retryCuisineSearch() {
@@ -43,6 +55,7 @@ class CuisineExplorerCubit extends Cubit<CuisineExplorerState> {
     _searchCancelToken?.cancel();
 
     if (query.length < 2) {
+      _debouncer.cancel();
       emit(const ExplorerIdle());
       return;
     }
@@ -55,12 +68,14 @@ class CuisineExplorerCubit extends Cubit<CuisineExplorerState> {
       final cancelToken = CancelToken();
       _searchCancelToken = cancelToken;
 
-      final result = await _dataSource.searchCities(
+      final result = await _repository.searchCities(
         query,
         "it",
         8,
         cancelToken: cancelToken,
       );
+
+      if (cancelToken.isCancelled) return;
 
       switch (result) {
         case Success(:final value):
@@ -85,7 +100,9 @@ class CuisineExplorerCubit extends Cubit<CuisineExplorerState> {
 
     _lastCitySelected = city;
 
-    final result = await _dataSource.getCuisines(
+    await _repository.saveRecentCity(city);
+
+    final result = await _repository.getCuisines(
       city.latitude,
       city.longitude,
       "cuisine",

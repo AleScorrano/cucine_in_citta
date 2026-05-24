@@ -14,19 +14,21 @@ class AppErrorWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.error_sharp, size: 100, color: AppColors.textSecondary),
-          const SizedBox(height: AppPadding.lg),
-          Text(
-            "Ops si è verficato un errore...",
-            style: Theme.of(context).textTheme.bodyLarge,
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(onPressed: onRetry, child: const Text('Riprova')),
-        ],
+    return Expanded(
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_sharp, size: 100, color: AppColors.textSecondary),
+            const SizedBox(height: AppPadding.lg),
+            Text(
+              "Ops si è verficato un errore...",
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(onPressed: onRetry, child: const Text('Riprova')),
+          ],
+        ),
       ),
     );
   }

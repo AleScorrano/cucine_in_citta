@@ -5,9 +5,12 @@ import 'package:cucine_in_citta/src/features/cuisines_explorer/presentation/scre
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
+  await Hive.openBox('recent_cities');
   await setupDependencies();
   runApp(const MyApp());
 }

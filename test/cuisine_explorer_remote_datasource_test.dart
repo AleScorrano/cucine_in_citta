@@ -37,7 +37,7 @@ void main() {
       ];
 
       when(
-        () => mockApiClient.searchCities(any(), any(), any()),
+        () => mockApiClient.searchCities(any(), any(), any(), any()),
       ).thenAnswer((_) async => cities);
 
       final result = await datasource.searchCities('mil', 'it', 8);
@@ -48,11 +48,13 @@ void main() {
 
       expect(success.value.first.name, 'Milano');
 
-      verify(() => mockApiClient.searchCities('mil', 'it', 8)).called(1);
+      verify(
+        () => mockApiClient.searchCities('mil', 'it', 8, CancelToken()),
+      ).called(1);
     });
     test('should return Failure when API throws', () async {
       when(
-        () => mockApiClient.searchCities(any(), any(), any()),
+        () => mockApiClient.searchCities(any(), any(), any(), CancelToken()),
       ).thenThrow(DioException(requestOptions: RequestOptions()));
 
       final result = await datasource.searchCities('mil', 'it', 8);

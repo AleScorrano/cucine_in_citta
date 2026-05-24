@@ -9,38 +9,40 @@ class EmptyCousinesWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(AppPadding.lg),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          IconButton(
-            onPressed: () {
-              context.read<CuisineExplorerCubit>().resetState();
-            },
-            icon: const Icon(
-              Icons.arrow_back,
-              color: AppColors.primary,
-              size: 32,
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.all(AppPadding.lg),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            IconButton(
+              onPressed: () {
+                context.read<CuisineExplorerCubit>().resetState();
+              },
+              icon: const Icon(
+                Icons.arrow_back,
+                color: AppColors.primary,
+                size: 32,
+              ),
             ),
-          ),
-          Expanded(child: SizedBox()),
-          Center(
-            child: Icon(
-              Icons.food_bank_sharp,
-              size: 100,
-              color: AppColors.textSecondary,
+            Expanded(child: SizedBox()),
+            Center(
+              child: Icon(
+                Icons.food_bank_sharp,
+                size: 100,
+                color: AppColors.textSecondary,
+              ),
             ),
-          ),
-          const SizedBox(height: AppPadding.lg),
-          Center(
-            child: Text(
-              "Nessuna cucina disponibile..",
-              style: Theme.of(context).textTheme.bodyLarge,
+            const SizedBox(height: AppPadding.lg),
+            Center(
+              child: Text(
+                "Nessuna cucina disponibile..",
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
             ),
-          ),
-          Expanded(child: SizedBox()),
-        ],
+            Expanded(child: SizedBox()),
+          ],
+        ),
       ),
     );
   }

@@ -2,7 +2,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'city_model.g.dart';
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class CityModel {
   final int id;
   final String name;
@@ -30,15 +30,17 @@ class CityModel {
   Map<String, dynamic> toJson() => _$CityModelToJson(this);
 }
 
-
 @JsonSerializable()
 class CityStructuredFormatting {
   final String main_text;
   final String secondary_text;
 
-  CityStructuredFormatting({required this.main_text,required this.secondary_text,});
+  CityStructuredFormatting({
+    required this.main_text,
+    required this.secondary_text,
+  });
 
-    factory CityStructuredFormatting.fromJson(Map<String, dynamic> json) =>
+  factory CityStructuredFormatting.fromJson(Map<String, dynamic> json) =>
       _$CityStructuredFormattingFromJson(json);
 
   Map<String, dynamic> toJson() => _$CityStructuredFormattingToJson(this);

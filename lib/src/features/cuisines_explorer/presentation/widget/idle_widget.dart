@@ -7,22 +7,26 @@ class IdleWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Center(child: SvgPicture.asset("assets/images/italy.svg", width: 200)),
-        Padding(
-          padding: const EdgeInsets.all(AppPadding.xxl),
-          child: Text(
-            "Inizia a cercare una città per scoprire le cucine disponibili",
-            style: Theme.of(
-              context,
-            ).textTheme.bodyLarge!.copyWith(fontSize: 16),
-            textAlign: TextAlign.center,
+    return Flexible(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: SvgPicture.asset("assets/images/idle.svg", width: 350),
           ),
-        ),
-      ],
+          Padding(
+            padding: const EdgeInsets.all(AppPadding.xxl),
+            child: Text(
+              "Inizia a cercare una città per scoprire le cucine disponibili",
+              style: Theme.of(
+                context,
+              ).textTheme.bodyLarge!.copyWith(fontSize: 16),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

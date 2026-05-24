@@ -24,6 +24,7 @@ class _ApiClient implements ApiClient {
     String term,
     String lang,
     int limit,
+    CancelToken? cancelToken,
   ) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
@@ -31,6 +32,7 @@ class _ApiClient implements ApiClient {
       r'lang': lang,
       r'limit': limit,
     };
+    queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
     final _options = _setStreamType<List<CityModel>>(
@@ -40,6 +42,7 @@ class _ApiClient implements ApiClient {
             '/places/v2/autocomplete',
             queryParameters: queryParameters,
             data: _data,
+            cancelToken: cancelToken,
           )
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
