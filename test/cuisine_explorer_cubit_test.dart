@@ -1,7 +1,8 @@
 import 'package:bloc_test/bloc_test.dart';
-import 'package:cucine_in_citta/src/features/cuisines_explorer/data/datasource/cuisines_explorer_remote_datasource.dart';
+import 'package:cucine_in_citta/src/features/cuisines_explorer/data/repository/cuisine_explorer_repository.dart';
 import 'package:cucine_in_citta/src/features/cuisines_explorer/presentation/cubit/cuisines_explorer_cubit.dart';
 import 'package:cucine_in_citta/src/features/cuisines_explorer/presentation/cubit/cuisines_explorer_state.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:cucine_in_citta/src/core/errors/api_exception.dart';
@@ -10,11 +11,11 @@ import 'package:cucine_in_citta/src/features/cuisines_explorer/data/models/cuisi
 import 'package:cucine_in_citta/src/features/cuisines_explorer/data/models/cuisine_response_model.dart';
 import 'package:cucine_in_citta/src/shared/result.dart';
 
-class MockCuisineExplorerRemoteDatasource extends Mock
-    implements CuisineExplorerRemoteDatasource {}
+class MockCuisineExplorerRepository extends Mock
+    implements CuisineExplorerRepository {}
 
 void main() {
-  late MockCuisineExplorerRemoteDatasource dataSource;
+  late MockCuisineExplorerRepository repository;
 
   const debounceDuration = Duration(milliseconds: 350);
 
@@ -45,18 +46,32 @@ void main() {
 
   final cuisineResponse = CuisineResponseModel(length: 1, data: [cuisine]);
 
+  setUpAll(() {
+    registerFallbackValue(CancelToken());
+  });
+
   setUp(() {
-    dataSource = MockCuisineExplorerRemoteDatasource();
+    repository = MockCuisineExplorerRepository();
+
+    when(() => repository.getRecentCities()).thenReturn([]);
+    when(() => repository.saveRecentCity(city)).thenAnswer((_) async {});
   });
 
   group('CuisineExplorerCubit', () {
     blocTest<CuisineExplorerCubit, CuisineExplorerState>(
       'emits ExplorerIdle when query has less than 2 characters',
-      build: () => CuisineExplorerCubit(dataSource),
+      build: () => CuisineExplorerCubit(repository),
       act: (cubit) => cubit.onSearchChanged('m'),
       expect: () => [isA<ExplorerIdle>()],
       verify: (_) {
-        verifyNever(() => dataSource.searchCities(any(), any(), any()));
+        verifyNever(
+          () => repository.searchCities(
+            any(),
+            any(),
+            any(),
+            cancelToken: any(named: 'cancelToken'),
+          ),
+        );
       },
     );
 
@@ -64,10 +79,15 @@ void main() {
       'emits Searching and SuggestionsLoaded when city search succeeds',
       build: () {
         when(
-          () => dataSource.searchCities('mil', 'it', 8),
+          () => repository.searchCities(
+            'mil',
+            'it',
+            8,
+            cancelToken: any(named: 'cancelToken'),
+          ),
         ).thenAnswer((_) async => Success([city]));
 
-        return CuisineExplorerCubit(dataSource);
+        return CuisineExplorerCubit(repository);
       },
       act: (cubit) => cubit.onSearchChanged('mil'),
       wait: debounceDuration,
@@ -76,7 +96,14 @@ void main() {
         isA<ExplorerSuggestionsLoaded>(),
       ],
       verify: (_) {
-        verify(() => dataSource.searchCities('mil', 'it', 8)).called(1);
+        verify(
+          () => repository.searchCities(
+            'mil',
+            'it',
+            8,
+            cancelToken: any(named: 'cancelToken'),
+          ),
+        ).called(1);
       },
     );
 
@@ -84,10 +111,15 @@ void main() {
       'emits Searching and NoResults when city search returns empty list',
       build: () {
         when(
-          () => dataSource.searchCities('xxx', 'it', 8),
+          () => repository.searchCities(
+            'xxx',
+            'it',
+            8,
+            cancelToken: any(named: 'cancelToken'),
+          ),
         ).thenAnswer((_) async => const Success([]));
 
-        return CuisineExplorerCubit(dataSource);
+        return CuisineExplorerCubit(repository);
       },
       act: (cubit) => cubit.onSearchChanged('xxx'),
       wait: debounceDuration,
@@ -97,11 +129,21 @@ void main() {
     blocTest<CuisineExplorerCubit, CuisineExplorerState>(
       'emits SearchCitiesError when city search fails',
       build: () {
-        when(() => dataSource.searchCities('mil', 'it', 8)).thenAnswer(
-          (_) async => Failure(null, const ApiException('Search error')),
+        when(
+          () => repository.searchCities(
+            'mil',
+            'it',
+            8,
+            cancelToken: any(named: 'cancelToken'),
+          ),
+        ).thenAnswer(
+          (_) async => Failure<List<CityModel>, ApiException>(
+            null,
+            const ApiException('Search error'),
+          ),
         );
 
-        return CuisineExplorerCubit(dataSource);
+        return CuisineExplorerCubit(repository);
       },
       act: (cubit) => cubit.onSearchChanged('mil'),
       wait: debounceDuration,
@@ -113,10 +155,10 @@ void main() {
       build: () {
         when(
           () =>
-              dataSource.getCuisines(city.latitude, city.longitude, 'cuisine'),
+              repository.getCuisines(city.latitude, city.longitude, 'cuisine'),
         ).thenAnswer((_) async => Success(cuisineResponse));
 
-        return CuisineExplorerCubit(dataSource);
+        return CuisineExplorerCubit(repository);
       },
       act: (cubit) => cubit.selectCity(city),
       expect: () => [
@@ -124,9 +166,10 @@ void main() {
         isA<ExplorerCuisinesLoaded>(),
       ],
       verify: (_) {
+        verify(() => repository.saveRecentCity(city)).called(1);
         verify(
           () =>
-              dataSource.getCuisines(city.latitude, city.longitude, 'cuisine'),
+              repository.getCuisines(city.latitude, city.longitude, 'cuisine'),
         ).called(1);
       },
     );
@@ -136,12 +179,12 @@ void main() {
       build: () {
         when(
           () =>
-              dataSource.getCuisines(city.latitude, city.longitude, 'cuisine'),
+              repository.getCuisines(city.latitude, city.longitude, 'cuisine'),
         ).thenAnswer(
           (_) async => Success(CuisineResponseModel(length: 0, data: [])),
         );
 
-        return CuisineExplorerCubit(dataSource);
+        return CuisineExplorerCubit(repository);
       },
       act: (cubit) => cubit.selectCity(city),
       expect: () => [
@@ -155,12 +198,15 @@ void main() {
       build: () {
         when(
           () =>
-              dataSource.getCuisines(city.latitude, city.longitude, 'cuisine'),
+              repository.getCuisines(city.latitude, city.longitude, 'cuisine'),
         ).thenAnswer(
-          (_) async => Failure(null, const ApiException('Cuisine error')),
+          (_) async => Failure<CuisineResponseModel, ApiException>(
+            null,
+            const ApiException('Cuisine error'),
+          ),
         );
 
-        return CuisineExplorerCubit(dataSource);
+        return CuisineExplorerCubit(repository);
       },
       act: (cubit) => cubit.selectCity(city),
       expect: () => [
@@ -173,10 +219,15 @@ void main() {
       'ignores obsolete city search responses',
       build: () {
         when(
-          () => dataSource.searchCities('mil', 'it', 8),
+          () => repository.searchCities(
+            'mil',
+            'it',
+            8,
+            cancelToken: any(named: 'cancelToken'),
+          ),
         ).thenAnswer((_) async => Success([city]));
 
-        return CuisineExplorerCubit(dataSource);
+        return CuisineExplorerCubit(repository);
       },
       act: (cubit) {
         cubit.onSearchChanged('mil');
